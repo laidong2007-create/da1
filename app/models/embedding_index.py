@@ -1,70 +1,12 @@
-import uuid
-
-
-from typing import TYPE_CHECKING
-from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime
+from sqlalchemy import String, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
-
 from app.core.database import Base
-if TYPE_CHECKING:
-    from app.models.document_chunk import DocumentChunk
-
 
 class EmbeddingIndex(Base):
-    """
-    Model lưu thông tin Embedding của từng Chunk.
-    """
-
     __tablename__ = "embedding_indexes"
 
-    # ==========================================
-    # Primary Key
-    # ==========================================
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
-
-    # ==========================================
-    # Foreign Key
-    # ==========================================
-
-    chunk_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey(
-            "document_chunks.id",
-            ondelete="CASCADE"
-        ),
-        nullable=False,
-        unique=True,
-        index=True
-    )
-
-    # ==========================================
-    # ChromaDB Information
-    # ==========================================
-
-    chroma_id: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        unique=True
-    )
-
-    embedding_model: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False
-    )
-
-    def __repr__(self) -> str:
-        return (
-            f"<EmbeddingIndex(chunk_id={self.chunk_id})>"
-        )
-
-
-chunk: Mapped["DocumentChunk"] = relationship(
-    back_populates="embedding"
-)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    collection_name: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    total_vectors: Mapped[int] = mapped_column(Integer, default=0)
+    last_synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

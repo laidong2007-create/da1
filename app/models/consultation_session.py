@@ -1,70 +1,23 @@
-import uuid
-
-from typing import TYPE_CHECKING
-from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
-
+from datetime import datetime
+from typing import List, TYPE_CHECKING
+from sqlalchemy import String, DateTime, func, Integer, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.historical_figure import HistoricalFigure
     from app.models.consultation_message import ConsultationMessage
 
-
-
 class ConsultationSession(Base):
-    """
-    Model lưu phiên hội thoại với AI.
-    """
-
     __tablename__ = "consultation_sessions"
 
-    # ==========================================
-    # Primary Key
-    # ==========================================
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    figure_id: Mapped[int] = mapped_column(ForeignKey("historical_figures.id"))
+    title: Mapped[str] = mapped_column(String(200), default="Cuộc trò chuyện mới")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
-
-    # ==========================================
-    # Foreign Key
-    # ==========================================
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey(
-            "users.id",
-            ondelete="CASCADE"
-        ),
-        nullable=False,
-        index=True
-    )
-
-    # ==========================================
-    # Session Information
-    # ==========================================
-
-    title: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False
-    )
-
-    def __repr__(self) -> str:
-        return (
-            f"<ConsultationSession(title='{self.title}')>"
-        )
-
-
-user: Mapped["User"] = relationship(
-    back_populates="consultation_sessions"
-)
-
-messages: Mapped[list["ConsultationMessage"]] = relationship(
-    back_populates="session",
-    cascade="all, delete-orphan"
-)
+    user: Mapped["User"] = relationship("User", back_populates="sessions")
+    historical_figure: Mapped["HistoricalFigure"] = relationship("HistoricalFigure", back_populates="sessions")
+    messages: Mapped[List["ConsultationMessage"]] = relationship("ConsultationMessage", back_populates="session", cascade="all, delete-orphan")

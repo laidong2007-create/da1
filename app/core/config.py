@@ -1,45 +1,29 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Quản lý toàn bộ cấu hình của ứng dụng.
-    Các giá trị được đọc từ file .env.
-    """
+    # Khai báo tất cả các biến có trong file .env của bạn
+    PROJECT_NAME: str = "Echoes of War"
+    VERSION: str = "1.0.0"
+    DEBUG: bool = True
 
-    # ===========================
-    # Application
-    # ===========================
-    APP_NAME: str
-    APP_VERSION: str
-    DEBUG: bool
+    DATABASE_URL: str = "sqlite+aiosqlite:///./echoes_of_war.db"
 
-    # ===========================
-    # Database
-    # ===========================
-    DATABASE_URL: str
+    # JWT Configs
+    SECRET_KEY: str = "your-secret-key-123456"
+    JWT_SECRET_KEY: str = "your_super_secret_key_change_me"
+    ALGORITHM: str = "HS256"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
-    # ===========================
-    # JWT
-    # ===========================
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
-
-    # ===========================
-    # OpenAI
-    # ===========================
+    # ChromaDB & LLM
+    CHROMA_DB_PATH: str = "./chroma_db"
     OPENAI_API_KEY: str = ""
 
-    # ===========================
-    # ChromaDB
-    # ===========================
-    CHROMA_DB_PATH: str
-
+    # Cấu hình Pydantic V2: Cho phép bỏ qua các biến thừa trong .env mà không gây Crash
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"  # Quan trọng
     )
 
 

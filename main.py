@@ -1,35 +1,55 @@
 from fastapi import FastAPI
-from app.core.config import settings
-from app.api.historical_figures import router as historical_figure_router
+from fastapi.middleware.cors import CORSMiddleware
 
+# Import đúng chuẩn 8 API Routers theo cấu trúc thư mục app/api/
+from app.api import (
+    ai_consultation,
+    auth,
+    document_embeddings,
+    document_metadata,
+    document_sources,
+    historical_documents,
+    historical_figures,
+    knowledge_search,
+)
 
 app = FastAPI(
-    title=settings.APP_NAME,
-    description="Backend API for Echoes of War",
-    version=settings.APP_VERSION,
+    title="Echoes of War - Backend API",
+    version="1.0.0",
+    description="Hệ thống AI Hội thoại Nhân vật Lịch sử & Quản trị Tri thức RAG",
 )
-app.include_router(historical_figure_router)
+
+# Cấu hình CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Đăng ký chính xác 8 Routers
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(historical_figures.router, prefix="/api/v1")
+app.include_router(historical_documents.router, prefix="/api/v1")
+app.include_router(document_metadata.router, prefix="/api/v1")
+app.include_router(document_sources.router, prefix="/api/v1")
+app.include_router(document_embeddings.router, prefix="/api/v1")
+app.include_router(knowledge_search.router, prefix="/api/v1")
+app.include_router(ai_consultation.router, prefix="/api/v1")
 
 
-@app.get("/", tags=["System"])
-async def root():
-    """
-    API kiểm tra trạng thái hoạt động của hệ thống.
-    """
+@app.get("/", tags=["Health Check"])
+def root():
     return {
-        "status": "success",
-        "message": f"{settings.APP_NAME} is running",
-        "version": settings.APP_VERSION,
+        "project": "Echoes of War",
+        "status": "Online",
+        "documentation": "/docs",
     }
 
 
-@app.get("/health", tags=["System"])
-async def health_check():
-    """
-    API kiểm tra sức khỏe của server.
-    """
-    return {
-        "status": "healthy"
-    }
 
+if __name__ == "__main__":
+    import uvicorn
 
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
